@@ -9,38 +9,133 @@
     :getContainer="false"
   >
     <div style="width: 100%;background-color: #f6f5f5">
-      <a-icon type="arrow-left" style="position: absolute;z-index: 999;color: red;font-size: 20px;margin: 15px" @click="home"/>
+      <a-icon type="arrow-left" style="position: absolute;z-index: 999;color: red;font-size: 20px;margin: 15px"
+              @click="home"/>
       <a-row style="height:100vh;font-family: SimHei">
-        <a-col :span="15" style="height: 100%;">
-          <div style="width: 100%;height: 100%;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff">
+        <a-col :span="15" style="height: 100%;overflow-y: auto">
+          <div  style="
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 50px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #f0f0f0;">
+            <!-- 筛选下拉框 -->
+            <a-select
+              v-model="selectedType"    style="width: 200px; border-radius: 8px;margin-left: 80px"
+              placeholder="请选择商品类型"
+            >
+              <a-select-option :value="null">全部类型</a-select-option>
+              <a-select-option
+                v-for="type in communityTypeList"
+                :key="type.id"
+                :value="type.id"      style="color: #1890ff; font-weight: 500;"
+              >
+                {{ type.name }}
+              </a-select-option>
+            </a-select>
+
+            <!-- 搜索输入框 -->
+            <a-input-search
+              v-model="searchKeyword"
+              placeholder="请输入商品名称"
+              enter-button    style="
+      width: 300px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    "
+            >
+              <a-icon slot="enterButton" type="search" style="color: white;" />
+            </a-input-search>
+          </div>
+          <div style="width: 100%;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff">
             <a-row :gutter="20" style="padding: 50px">
-              <a-col :span="12" v-for="(item, index) in dishesList" :key="index" style="margin-bottom: 15px">
-                <div style="width: 100%;margin-bottom: 15px;text-align: left;box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;">
-                  <a-card :bordered="false" hoverable>
-                    <a-carousel autoplay style="height: 150px;" v-if="item.images !== undefined && item.images !== ''">
-                      <div style="width: 100%;height: 150px" v-for="(item, index) in item.images.split(',')" :key="index">
-                        <img :src="'http://127.0.0.1:9527/imagesWeb/'+item" style="width: 100%;height: 250px">
+              <a-col :span="12" v-for="(item, index) in filteredDishesList" :key="index" style="margin-bottom: 15px">
+                <div
+                  style="width: 100%;margin-bottom: 15px;text-align: left;box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;">
+                  <a-card
+                    :bordered="false"
+                    hoverable
+                    style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;"
+                  >
+                    <a-carousel
+                      autoplay
+                      style="height: 150px; border-radius: 8px 8px 0 0; overflow: hidden;"
+                      :autoplay-speed="3000"
+                    >
+                      <div
+                        v-for="(img, idx) in item.images.split(',')"
+                        :key="idx"
+                        style="width: 100%; height: 150px; display: flex; align-items: center; justify-content: center;"
+                      >
+                        <img
+                          :src="'http://127.0.0.1:9527/imagesWeb/' + img"
+                          style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px 8px 0 0;"
+                        />
                       </div>
                     </a-carousel>
-                    <a-card-meta :title="item.name" :description="item.content.slice(0, 25)+'...'" style="margin-top: 10px"></a-card-meta>
-                    <div style="font-size: 12px;font-family: SimHei;margin-top: 8px;margin-bottom: 5px">
+                    <a-card-meta
+                      :title="item.name"
+                      :description="item.content.slice(0, 25) + '...'"
+                      style="margin-top: 10px; font-weight: bold;"
+                    />
+                    <div style="font-size: 12px; font-family: SimHei; margin-top: 8px; margin-bottom: 5px;">
                       <a-row>
                         <a-col :span="18">
                           <div>
-                            <span>{{ item.rawMaterial.slice(0, 10)+'...' }}</span> |
-                            <span  style="margin-left: 2px">{{ item.portion.slice(0, 15)+'...' }}</span>
+                            <span style="color: #666;">{{ item.rawMaterial.slice(0, 10) + '...' }}</span> |
+                            <span style="margin-left: 2px; color: #666;">{{ item.portion.slice(0, 15) + '...' }}</span>
                           </div>
-                          <div style="color: #f5222d; font-size: 13px;float: left;margin-top: 5px">{{ item.unitPrice }}元</div>
+                          <div
+                            style="color: #f5222d; font-size: 16px; font-weight: bold; float: left; margin-top: 5px;">
+                            ¥{{ item.unitPrice }}
+                          </div>
                         </a-col>
-                        <a-col :span="3" style="height: 100%;text-align: right">
-                          <a-icon type="heart" v-if="checkCollect(item.id)" style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;color: red" @click="collectDel(item)"/>
-                          <a-icon type="heart" v-else style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;" @click="collectAdd(item)"/>
-                        </a-col>
-                        <a-col :span="3" style="height: 100%;text-align: right">
-                          <a-icon type="plus-square" theme="twoTone" style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;" @click="dishesAdd(item)" v-show="nextFlag == 1"/>
-                        </a-col>
+                        <a-icon
+                          type="heart"
+                          v-if="checkCollect(item.id)"
+                          style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; color: red; transition: transform 0.2s ease;"
+                          @click="collectDel(item)"
+                          @mouseenter="$event.target.style.transform='scale(1.2)'"
+                          @mouseleave="$event.target.style.transform='scale(1)'"
+                        />
+                        <a-icon
+                          type="heart"
+                          v-else
+                          style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; color: #ccc; transition: transform 0.2s ease;"
+                          @click="collectAdd(item)"
+                          @mouseenter="$event.target.style.transform='scale(1.2)'"
+                          @mouseleave="$event.target.style.transform='scale(1)'"
+                        />
+                        <a-icon
+                          type="plus-square"
+                          theme="twoTone"
+                          style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; transition: transform 0.2s ease;"
+                          @click="dishesAdd(item)"
+                          v-show="nextFlag == 1"
+                          @mouseenter="$event.target.style.transform='scale(1.2)'"
+                          @mouseleave="$event.target.style.transform='scale(1)'"
+                        />
                       </a-row>
                     </div>
+                    <!--                    <div style="font-size: 12px;font-family: SimHei;margin-top: 8px;margin-bottom: 5px">-->
+                    <!--                      <a-row>-->
+                    <!--                        <a-col :span="18">-->
+                    <!--                          <div>-->
+                    <!--                            <span>{{ item.rawMaterial.slice(0, 10)+'...' }}</span> |-->
+                    <!--                            <span  style="margin-left: 2px">{{ item.portion.slice(0, 15)+'...' }}</span>-->
+                    <!--                          </div>-->
+                    <!--                          <div style="color: #f5222d; font-size: 13px;float: left;margin-top: 5px">{{ item.unitPrice }}元</div>-->
+                    <!--                        </a-col>-->
+                    <!--                        <a-col :span="3" style="height: 100%;text-align: right">-->
+                    <!--                          <a-icon type="heart" v-if="checkCollect(item.id)" style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;color: red" @click="collectDel(item)"/>-->
+                    <!--                          <a-icon type="heart" v-else style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;" @click="collectAdd(item)"/>-->
+                    <!--                        </a-col>-->
+                    <!--                        <a-col :span="3" style="height: 100%;text-align: right">-->
+                    <!--                          <a-icon type="plus-square" theme="twoTone" style="font-size: 20px;margin-right: 5px;margin-top: 10px;cursor: pointer;" @click="dishesAdd(item)" v-show="nextFlag == 1"/>-->
+                    <!--                        </a-col>-->
+                    <!--                      </a-row>-->
+                    <!--                    </div>-->
                   </a-card>
                 </div>
               </a-col>
@@ -49,15 +144,19 @@
         </a-col>
         <a-col :span="9" style="height: 100%;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff">
           <div>
-            <div class="scenicInfo" style="height: 100vh; overflow-y: auto;padding-left: 5px;overflow-x: hidden;color: #4a4a48;font-size: 12px;font-family: SimHei" v-if="orderData != null && nextFlag == 1">
+            <div class="scenicInfo"
+                 style="height: 100vh; overflow-y: auto;padding-left: 5px;overflow-x: hidden;color: #4a4a48;font-size: 12px;font-family: SimHei"
+                 v-if="orderData != null && nextFlag == 1">
               <a-card :title="orderData.name" :bordered="false">
                 <a-row style="padding-left: 24px;padding-right: 24px;font-size: 11px;font-family: SimHei">
                   <a-col :span="24" style="margin-top: 10px;margin-bottom: 10px">
                     <a-popover placement="bottom">
                       <template slot="content">
-                        <a-avatar shape="square" :size="132" icon="user" :src="'http://127.0.0.1:9527/imagesWeb/' + orderData.images.split(',')[0]" />
+                        <a-avatar shape="square" :size="132" icon="user"
+                                  :src="'http://127.0.0.1:9527/imagesWeb/' + orderData.images.split(',')[0]"/>
                       </template>
-                      <a-avatar shape="square" :size="50" icon="user" :src="'http://127.0.0.1:9527/imagesWeb/' + orderData.images.split(',')[0]" />
+                      <a-avatar shape="square" :size="50" icon="user"
+                                :src="'http://127.0.0.1:9527/imagesWeb/' + orderData.images.split(',')[0]"/>
                     </a-popover>
                   </a-col>
                   <a-col :span="8"><b>商家编号：</b>
@@ -80,38 +179,46 @@
               <div style="font-size: 12px;font-family: SimHei;color: #404040;margin-top: 25px">
                 <div>
                   <a-row style="padding-left: 24px;padding-right: 24px;font-size: 11px;font-family: SimHei">
-                    <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">购买信息</span></a-col>
+                    <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">购买信息</span>
+                    </a-col>
                   </a-row>
                   <div v-if="checkList.length !== 0" style="font-size: 12px;font-family: SimHei">
-                    <a-table :columns="columns" :rowKey="record => record.id" :data-source="checkList" :pagination="false">
+                    <a-table :columns="columns" :rowKey="record => record.id" :data-source="checkList"
+                             :pagination="false">
                       <template slot="operation" slot-scope="text, record">
-                        <a-icon type="minus-square" theme="twoTone" @click="dishesRemove(record)" title="删 除" style="cursor: pointer;"></a-icon>
+                        <a-icon type="minus-square" theme="twoTone" @click="dishesRemove(record)" title="删 除"
+                                style="cursor: pointer;"></a-icon>
                       </template>
                     </a-table>
                     <div style="padding-left: 20px;margin-top: 25px"><span>合计</span>
-                    <span style="color: red">{{ totalPrice }} 元</span>
+                      <span style="color: red">{{ totalPrice }} 元</span>
                     </div>
                   </div>
-                  <div style="margin-top: 150px;text-align: center"  v-if="checkList.length === 0">
+                  <div style="margin-top: 150px;text-align: center" v-if="checkList.length === 0">
                     <a-icon type="smile" theme="twoTone" style="font-size: 75px"/>
                     <h1 style="margin-top: 20px">请选择商品</h1>
                   </div>
                 </div>
               </div>
             </div>
-            <div v-if="nextFlag == 2" style="height: 100vh; overflow-y: auto;padding-left: 5px;overflow-x: hidden;color: #4a4a48;font-size: 12px;font-family: SimHei">
+            <div v-if="nextFlag == 2"
+                 style="height: 100vh; overflow-y: auto;padding-left: 5px;overflow-x: hidden;color: #4a4a48;font-size: 12px;font-family: SimHei">
               <div style="font-size: 12px;font-family: SimHei;color: #404040;">
-                <div v-if="type == 1" id="areas" style="width: 100%;height: 350px;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);background:#ec9e3c;color:#fff;margin-bottom: 20px"></div>
+                <div v-if="type == 1" id="areas"
+                     style="width: 100%;height: 350px;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);background:#ec9e3c;color:#fff;margin-bottom: 20px"></div>
                 <div style="margin-top: 25px">
                   <a-row style="padding-left: 24px;padding-right: 24px;font-size: 11px;font-family: SimHei">
-                    <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">购买信息</span></a-col>
+                    <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">购买信息</span>
+                    </a-col>
                   </a-row>
                   <div v-if="checkList.length !== 0" style="font-size: 12px;font-family: SimHei">
-                    <a-table :columns="columns1" :rowKey="record => record.id" :data-source="checkList" :pagination="false">
+                    <a-table :columns="columns1" :rowKey="record => record.id" :data-source="checkList"
+                             :pagination="false">
                     </a-table>
-<!--                    <a-alert :message="'购买商品热量【'+totalHeat+'】 超过600，请合理规划' " banner v-if="totalHeat > 600"/>-->
+                    <!--                    <a-alert :message="'购买商品热量【'+totalHeat+'】 超过600，请合理规划' " banner v-if="totalHeat > 600"/>-->
                     <a-row style="padding-left: 20px;padding-right: 20px;margin-top: 30px">
-                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 区外配送/区内配送</span></a-col>
+                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 区外配送/区内配送</span>
+                      </a-col>
                       <a-col :span="24">
                         <a-radio-group button-style="solid" v-model="type">
                           <a-radio-button value="0">
@@ -123,28 +230,37 @@
                         </a-radio-group>
                       </a-col>
                     </a-row>
-                    <a-row style="padding-left: 20px;padding-right: 20px;margin-top: 30px"  v-if="type == 1">
-                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 配送地址</span></a-col>
+                    <a-row style="padding-left: 20px;padding-right: 20px;margin-top: 30px" v-if="type == 1">
+                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 配送地址</span>
+                      </a-col>
                       <a-col :span="12" v-if="type == 1">
                         <a-select v-model="addressId" style="width: 100%" @change="handleChange">
-                          <a-select-option v-for="(item, index) in addressList" :value="item.id" :key="index">{{ item.address }}</a-select-option>
+                          <a-select-option v-for="(item, index) in addressList" :value="item.id" :key="index">
+                            {{ item.address }}
+                          </a-select-option>
                         </a-select>
                       </a-col>
                     </a-row>
-                    <div style="padding-left: 20px;margin-top: 25px;text-align: right;padding-right: 30px"><span>商品合计</span>
+                    <div style="padding-left: 20px;margin-top: 25px;text-align: right;padding-right: 30px">
+                      <span>商品合计</span>
                       <span style="color: red">{{ totalPrice }} 元</span>
                     </div>
-                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px" v-if="orderAddInfo.isMember == 1"><span>会员折扣</span>
+                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px"
+                         v-if="orderAddInfo.isMember == 1"><span>会员折扣</span>
                       <span style="color: red">{{ orderAddInfo.discount }} 元</span>
                     </div>
-                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px" v-if="orderAddInfo.addressId != null"><span>配送费用</span>
-                      {{ orderAddInfo.kilometre }} 千米  <span style="color: red">{{ orderAddInfo.distributionPrice }} 元</span>
+                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px"
+                         v-if="orderAddInfo.addressId != null"><span>配送费用</span>
+                      {{ orderAddInfo.kilometre }} 千米 <span style="color: red">{{
+                          orderAddInfo.distributionPrice
+                        }} 元</span>
                     </div>
-                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px"><span>折后价格</span>
+                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px">
+                      <span>折后价格</span>
                       <span style="color: red">{{ orderAddInfo.afterOrderPrice }} 元</span>
                     </div>
                   </div>
-                  <div style="margin-top: 150px;text-align: center"  v-if="checkList.length === 0">
+                  <div style="margin-top: 150px;text-align: center" v-if="checkList.length === 0">
                     <a-icon type="smile" theme="twoTone" style="font-size: 75px"/>
                     <h1 style="margin-top: 20px">请选择商品</h1>
                   </div>
@@ -192,6 +308,7 @@
 <script>
 import baiduMap from '@/utils/map/baiduMap'
 import {mapState} from 'vuex'
+
 export default {
   name: 'Map',
   props: {
@@ -215,12 +332,14 @@ export default {
         title: '图片',
         dataIndex: 'images',
         customRender: (text, record, index) => {
-          if (!record.images) return <a-avatar shape="square" icon="user" />
+          if (!record.images) return <a-avatar shape="square" icon="user"/>
           return <a-popover>
             <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+              <a-avatar shape="square" size={132} icon="user"
+                src={'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0]}/>
             </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            <a-avatar shape="square" icon="user"
+              src={'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0]}/>
           </a-popover>
         }
       }, {
@@ -256,12 +375,14 @@ export default {
         title: '图片',
         dataIndex: 'images',
         customRender: (text, record, index) => {
-          if (!record.images) return <a-avatar shape="square" icon="user" />
+          if (!record.images) return <a-avatar shape="square" icon="user"/>
           return <a-popover>
             <template slot="content">
-              <a-avatar shape="square" size={132} icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+              <a-avatar shape="square" size={132} icon="user"
+                src={'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0]}/>
             </template>
-            <a-avatar shape="square" icon="user" src={ 'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0] } />
+            <a-avatar shape="square" icon="user"
+              src={'http://127.0.0.1:9527/imagesWeb/' + record.images.split(',')[0]}/>
           </a-popover>
         }
       }, {
@@ -310,10 +431,14 @@ export default {
       visible: false,
       rentList: [],
       communityList: [],
+      communityTypeList: [],
       community: null,
       nowPoint: null,
       roadData: [],
       collectList: [],
+      selectedType: null, // 选中的商品类型 ID
+      searchKeyword: '', // 搜索关键词
+      filteredDishesList: [], // 过滤后的商品列表
       checkLoading: false,
       echartsShow: false,
       getShop: null,
@@ -337,6 +462,12 @@ export default {
     }
   },
   watch: {
+    selectedType () {
+      this.filterDishes()
+    },
+    searchKeyword () {
+      this.filterDishes()
+    },
     'orderShow': function (value) {
       if (value) {
         this.collectList = []
@@ -347,6 +478,7 @@ export default {
         this.nextFlag = 1
         this.totalPrice = 0
         this.totalHeat = 0
+        this.queryCommunityType()
         this.selectDishesByMerchant(this.orderData.id)
         this.selectMerchantEvaluate(this.orderData.id)
         this.selectCollectByUser(this.orderData.id)
@@ -363,14 +495,44 @@ export default {
     }
   },
   methods: {
+    filterDishes () {
+      let result = this.dishesList
+
+      // 根据商品类型筛选
+      if (this.selectedType !== null) {
+        result = result.filter(item => item.typeId === this.selectedType)
+      }
+
+      // 根据商品名称模糊搜索
+      if (this.searchKeyword.trim() !== '') {
+        result = result.filter(item =>
+          item.name.toLowerCase().includes(this.searchKeyword.toLowerCase())
+        )
+      }
+
+      this.filteredDishesList = result
+    },
+    queryCommunityType () {
+      this.$get(`/cos/firniture-type-info/list`).then((r) => {
+        this.communityTypeList = r.data.data
+      })
+    },
     collectAdd (row) {
-      this.$post(`/cos/collect-info`, {userId: this.currentUser.userId, furnitureId: row.id, merchantId: this.orderData.id}).then((r) => {
+      this.$post(`/cos/collect-info`, {
+        userId: this.currentUser.userId,
+        furnitureId: row.id,
+        merchantId: this.orderData.id
+      }).then((r) => {
         this.$message.success('收藏成功')
         this.selectCollectByUser(this.orderData.id)
       })
     },
     collectDel (row) {
-      this.$delete('/cos/collect-info/deleteById', {userId: this.currentUser.userId, furnitureId: row.id, merchantId: this.orderData.id}).then(() => {
+      this.$delete('/cos/collect-info/deleteById', {
+        userId: this.currentUser.userId,
+        furnitureId: row.id,
+        merchantId: this.orderData.id
+      }).then(() => {
         this.$message.success('取消收藏成功')
         this.selectCollectByUser(this.orderData.id)
       })
@@ -498,6 +660,7 @@ export default {
     selectDishesByMerchant (merchantId) {
       this.$get(`/cos/dishes-info/selectDishesByMerchant/${merchantId}`).then((r) => {
         this.dishesList = r.data.data
+        this.filterDishes()
       })
     },
     selectMerchantEvaluate (merchantId) {
@@ -585,57 +748,66 @@ export default {
 </script>
 
 <style scoped>
-  >>> .ant-drawer-body {
-    padding: 0 !important;
-  }
-  >>> .ant-card-meta-title {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  >>> .ant-card-meta-description {
-    font-size: 12px;
-    font-family: SimHei;
-  }
-  >>> .ant-divider-with-text-left {
-    margin: 0;
-  }
+>>> .ant-drawer-body {
+  padding: 0 !important;
+}
 
-  >>> .ant-card-head-title {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  >>> .ant-card-extra {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  >>> .ant-radio-button-wrapper {
-    border-radius: 0;
-  }
+>>> .ant-card-meta-title {
+  font-size: 13px;
+  font-family: SimHei;
+}
 
-  >>> .ant-card-meta-title {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  >>> .ant-card-meta-description {
-    font-size: 12px;
-    font-family: SimHei;
-  }
-  >>> .ant-divider-with-text-left {
-    margin: 0;
-  }
+>>> .ant-card-meta-description {
+  font-size: 12px;
+  font-family: SimHei;
+}
 
-  >>> .ant-card-head-title {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  >>> .ant-card-extra {
-    font-size: 13px;
-    font-family: SimHei;
-  }
-  .ant-carousel >>> .slick-slide {
-    text-align: center;
-    height: 150px;
-    line-height: 150px;
-    overflow: hidden;
-  }
+>>> .ant-divider-with-text-left {
+  margin: 0;
+}
+
+>>> .ant-card-head-title {
+  font-size: 13px;
+  font-family: SimHei;
+}
+
+>>> .ant-card-extra {
+  font-size: 13px;
+  font-family: SimHei;
+}
+
+>>> .ant-radio-button-wrapper {
+  border-radius: 0;
+}
+
+>>> .ant-card-meta-title {
+  font-size: 13px;
+  font-family: SimHei;
+}
+
+>>> .ant-card-meta-description {
+  font-size: 12px;
+  font-family: SimHei;
+}
+
+>>> .ant-divider-with-text-left {
+  margin: 0;
+}
+
+>>> .ant-card-head-title {
+  font-size: 13px;
+  font-family: SimHei;
+}
+
+>>> .ant-card-extra {
+  font-size: 13px;
+  font-family: SimHei;
+}
+
+.ant-carousel >>> .slick-slide {
+  text-align: center;
+  height: 150px;
+  line-height: 150px;
+  overflow: hidden;
+}
 </style>
