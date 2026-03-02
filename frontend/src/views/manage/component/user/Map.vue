@@ -50,7 +50,7 @@
           </div>
           <div style="width: 100%;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff">
             <a-row :gutter="20" style="padding: 50px">
-              <a-col :span="12" v-for="(item, index) in filteredDishesList" :key="index" style="margin-bottom: 15px">
+              <a-col :span="8" v-for="(item, index) in filteredDishesList" :key="index" style="margin-bottom: 15px">
                 <div
                   style="width: 100%;margin-bottom: 15px;text-align: left;box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;">
                   <a-card
@@ -70,13 +70,13 @@
                       >
                         <img
                           :src="'http://127.0.0.1:9527/imagesWeb/' + img"
-                          style="max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 8px 8px 0 0;"
+                          style="object-fit: fill; border-radius: 8px 8px 0 0;"
                         />
                       </div>
                     </a-carousel>
                     <a-card-meta
                       :title="item.name"
-                      :description="item.content.slice(0, 25) + '...'"
+                      :description="item.content.slice(0, 15) + '...'"
                       style="margin-top: 10px; font-weight: bold;"
                     />
                     <div style="font-size: 12px; font-family: SimHei; margin-top: 8px; margin-bottom: 5px;">
@@ -84,7 +84,7 @@
                         <a-col :span="18">
                           <div>
                             <span style="color: #666;">{{ item.rawMaterial.slice(0, 10) + '...' }}</span> |
-                            <span style="margin-left: 2px; color: #666;">{{ item.portion.slice(0, 15) + '...' }}</span>
+                            <span style="margin-left: 2px; color: #666;">{{ item.portion.slice(0, 10) + '...' }}</span>
                           </div>
                           <div
                             style="color: #f5222d; font-size: 16px; font-weight: bold; float: left; margin-top: 5px;">
@@ -142,7 +142,7 @@
             </a-row>
           </div>
         </a-col>
-        <a-col :span="9" style="height: 100%;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff">
+        <a-col :span="9" style="height: 100vh;box-shadow: 3px 3px 3px rgba(0, 0, 0, .2);color:#fff;overflow-y: auto">
           <div>
             <div class="scenicInfo"
                  style="height: 100vh; overflow-y: auto;padding-left: 5px;overflow-x: hidden;color: #4a4a48;font-size: 12px;font-family: SimHei"
@@ -217,15 +217,15 @@
                     </a-table>
                     <!--                    <a-alert :message="'购买商品热量【'+totalHeat+'】 超过600，请合理规划' " banner v-if="totalHeat > 600"/>-->
                     <a-row style="padding-left: 20px;padding-right: 20px;margin-top: 30px">
-                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 区外配送/区内配送</span>
+                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 外送/自取</span>
                       </a-col>
                       <a-col :span="24">
                         <a-radio-group button-style="solid" v-model="type">
                           <a-radio-button value="0">
-                            区内配送
+                            自取
                           </a-radio-button>
                           <a-radio-button value="1">
-                            区外配送
+                            外送
                           </a-radio-button>
                         </a-radio-group>
                       </a-col>
@@ -241,6 +241,29 @@
                         </a-select>
                       </a-col>
                     </a-row>
+
+                    <a-row style="padding-left: 20px;padding-right: 20px;margin-top: 30px">
+                      <a-col style="margin-bottom: 15px"><span style="font-size: 13px;font-weight: 650;color: #000c17">选择 优惠券</span>
+                      </a-col>
+                      <a-col :span="24">
+                        <coupon-selector
+                          :coupon-data="discountList"
+                          :orderPrice="orderAddInfo.afterOrderPrice"
+                          @change="handleCouponChange"
+                        />
+
+                        <!-- 结算按钮 -->
+<!--                        <a-button type="primary" @click="handleCheckout" :disabled="!selectedCouponInfo">-->
+<!--                          使用优惠券结算-->
+<!--                        </a-button>-->
+
+                        <!-- 显示优惠金额 -->
+<!--                        <div v-if="selectedCouponInfo">-->
+<!--                          优惠金额：{{ calculateDiscount }} 元-->
+<!--                        </div>-->
+                      </a-col>
+                    </a-row>
+
                     <div style="padding-left: 20px;margin-top: 25px;text-align: right;padding-right: 30px">
                       <span>商品合计</span>
                       <span style="color: red">{{ totalPrice }} 元</span>
@@ -255,7 +278,7 @@
                           orderAddInfo.distributionPrice
                         }} 元</span>
                     </div>
-                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px">
+                    <div style="padding-left: 20px;margin-top: 5px;text-align: right;padding-right: 30px;margin-bottom: 50px">
                       <span>折后价格</span>
                       <span style="color: red">{{ orderAddInfo.afterOrderPrice }} 元</span>
                     </div>
@@ -307,10 +330,14 @@
 
 <script>
 import baiduMap from '@/utils/map/baiduMap'
+import CouponSelector from './CouponSelector.vue'
 import {mapState} from 'vuex'
 
 export default {
   name: 'Map',
+  components: {
+    CouponSelector
+  },
   props: {
     orderShow: {
       type: Boolean,
@@ -345,9 +372,6 @@ export default {
       }, {
         title: '购买数量',
         dataIndex: 'amount'
-      }, {
-        title: '热量',
-        dataIndex: 'heat'
       }, {
         title: '单价',
         dataIndex: 'unitPrice'
@@ -415,6 +439,7 @@ export default {
       totalPrice: 0,
       totalHeat: 0,
       dishesList: [],
+      discountList: [],
       evaluateList: [],
       checkList: [],
       evaluateInfo: null,
@@ -442,6 +467,7 @@ export default {
       checkLoading: false,
       echartsShow: false,
       getShop: null,
+      selectedCouponInfo: null,
       putShop: null,
       series: [{
         name: '得分',
@@ -478,6 +504,7 @@ export default {
         this.nextFlag = 1
         this.totalPrice = 0
         this.totalHeat = 0
+        this.queryDiscountSortByUserId()
         this.queryCommunityType()
         this.selectDishesByMerchant(this.orderData.id)
         this.selectMerchantEvaluate(this.orderData.id)
@@ -495,6 +522,36 @@ export default {
     }
   },
   methods: {
+    handleCouponChange(couponInfo) {
+      this.selectedCouponInfo = couponInfo
+
+      console.log('选择的优惠券:', couponInfo)
+
+      if (couponInfo) {
+        const originalPrice = parseFloat(this.orderAddInfo.orderPrice) || 0
+
+        if (couponInfo.type == '1') {
+          const discountPrice = parseFloat(couponInfo.discountPrice) || 0
+          this.orderAddInfo.afterOrderPrice = originalPrice - discountPrice
+        } else if (couponInfo.type == '2') {
+          const rebate = parseFloat(couponInfo.rebate) || 0
+          this.orderAddInfo.afterOrderPrice = originalPrice * (rebate / 10)
+        }
+
+        this.orderAddInfo.afterOrderPrice = Math.max(0, this.orderAddInfo.afterOrderPrice)
+
+        // this.$message.success(`优惠后价格：${this.orderAddInfo.afterOrderPrice.toFixed(2)}元`)
+      } else {
+        this.orderAddInfo.afterOrderPrice = this.orderAddInfo.orderPrice
+      }
+    },
+    queryDiscountSortByUserId () {
+      this.$get(`/cos/discount-info/queryDiscountSortByUserId`, {
+        userId: this.currentUser.userId
+      }).then((r) => {
+        this.discountList = r.data.data
+      })
+    },
     filterDishes () {
       let result = this.dishesList
 
@@ -556,6 +613,11 @@ export default {
     },
     orderPay (record) {
       this.orderAddInfo.userId = this.currentUser.userId
+      if (this.selectedCouponInfo != null) {
+        this.orderAddInfo.discountId = this.selectedCouponInfo.couponId
+      }
+      console.log(this.orderAddInfo)
+      return false
       this.$post('/cos/pay/alipay', this.orderAddInfo).then((r) => {
         // console.log(r.data.msg)
         // 添加之前先删除一下，如果单页面，页面不刷新，添加进去的内容会一直保留在页面中，二次调用form表单会出错

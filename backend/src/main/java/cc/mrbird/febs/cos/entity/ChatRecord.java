@@ -30,12 +30,12 @@ public class ChatRecord implements Serializable {
     private Integer userId;
 
     /**
-     * 车主ID
+     * 商家ID
      */
     private Integer staffId;
 
     /**
-     * 发送者类型 0-用户 1-车主
+     * 发送者类型 0-用户 1-商家
      */
     private String senderType;
 

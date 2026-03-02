@@ -57,6 +57,8 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     private final IMailService mailService;
 
+    private final IDiscountInfoService discountInfoService;
+
 
     /**
      * 分页获取订单信息
@@ -542,6 +544,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             mailService.sendHtmlMail(userInfo.getMail(), DateUtil.formatDate(new Date()) + "支付通知", emailContent);
         }
 
+        if (orderInfo.getDiscountId() != null) {
+            discountInfoService.update(Wrappers.<DiscountInfo>lambdaUpdate().set(DiscountInfo::getStatus, "1").eq(DiscountInfo::getId, orderInfo.getDiscountId()));
+        }
         // 更新用户积分
         userInfoService.updateById(userInfo);
         // 更新订单状态

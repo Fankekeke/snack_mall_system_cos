@@ -50,9 +50,9 @@ public class ChatRecordController {
     }
 
     /**
-     * 根据车主ID获取沟通联系人列表
+     * 根据商家ID获取沟通联系人列表
      *
-     * @param staffId 车主ID
+     * @param staffId 商家ID
      * @return 联系人列表
      */
     @GetMapping("/contacts/staff/{staffId}")
@@ -75,10 +75,10 @@ public class ChatRecordController {
     }
 
     /**
-     * 根据用户ID和车主ID获取聊天记录
+     * 根据用户ID和商家ID获取聊天记录
      *
      * @param userId  用户ID
-     * @param staffId 车主ID
+     * @param staffId 商家ID
      * @return 结果
      */
     @GetMapping("/list")

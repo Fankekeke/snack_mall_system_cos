@@ -31,14 +31,14 @@
           </a-row>
           <br/>
           <a-row style="padding-left: 24px;padding-right: 24px;">
-            <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">选择 区外配送/区内配送</span></a-col>
+            <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">选择 外送/自取</span></a-col>
             <a-col :span="24">
               <a-radio-group button-style="solid" v-model="orderInfo.type">
                 <a-radio-button value="0">
-                  区内配送
+                  自取
                 </a-radio-button>
                 <a-radio-button value="1">
-                  区外配送
+                  外送
                 </a-radio-button>
               </a-radio-group>
             </a-col>

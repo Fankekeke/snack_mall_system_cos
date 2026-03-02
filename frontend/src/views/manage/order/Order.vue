@@ -257,9 +257,9 @@ export default {
         customRender: (text, row, index) => {
           switch (text) {
             case '0':
-              return <a-tag>区内配送</a-tag>
+              return <a-tag>自取</a-tag>
             case '1':
-              return <a-tag>区外配送</a-tag>
+              return <a-tag>外送</a-tag>
             default:
               return '- -'
           }

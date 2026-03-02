@@ -110,6 +110,7 @@ public class OrderInfo implements Serializable {
      * 员工ID
      */
     private Integer staffId;
+    private Integer discountId;
 
     /**
      * 订单商品

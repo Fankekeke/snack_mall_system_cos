@@ -12,9 +12,9 @@ import java.util.List;
 public interface IChatRecordService extends IService<ChatRecord> {
 
     /**
-     * 根据车主ID获取沟通联系人列表
+     * 根据商家ID获取沟通联系人列表
      *
-     * @param staffId 车主ID
+     * @param staffId 商家ID
      * @return 联系人列表
      */
     List<LinkedHashMap<String, Object>> getContactsByStaffId(Integer staffId);

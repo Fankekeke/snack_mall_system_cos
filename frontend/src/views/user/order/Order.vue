@@ -68,6 +68,7 @@
           <a-icon v-if="record.status == 2 && record.type == 1" type="check" @click="orderComplete(record)" title="订单完成" style="margin-left: 15px"></a-icon>
           <a-icon v-if="record.type == 1" type="cluster" @click="orderMapOpen(record)" title="地 图" style="margin-left: 15px"></a-icon>
           <a-icon v-if="record.evaluateId == null && record.status == 3" type="reconciliation" theme="twoTone" twoToneColor="#4a9ff5" @click="orderEvaluateOpen(record)" title="评 价" style="margin-left: 15px"></a-icon>
+          <a-icon v-if="record.complaintId == null && record.status == 3" type="warning" theme="twoTone" twoToneColor="#4a9ff5" @click="orderComplaintOpen(record)" title="投 诉" style="margin-left: 15px"></a-icon>
         </template>
       </a-table>
     </div>
@@ -104,6 +105,12 @@
       :evaluateAddVisiable="orderEvaluateView.visiable"
       :orderData="orderEvaluateView.data">
     </order-evaluate>
+    <order-complaint
+      @close="handleorderComplaintViewClose"
+      @success="handleorderComplaintViewSuccess"
+      :evaluateAddVisiable="orderComplaintView.visiable"
+      :orderData="orderComplaintView.data">
+    </order-complaint>
   </a-card>
 </template>
 
@@ -116,12 +123,13 @@ import OrderAudit from './OrderAudit'
 import OrderView from './OrderView'
 import OrderStatus from './OrderStatus.vue'
 import OrderEvaluate from './OrderEvaluate'
+import OrderComplaint from './OrderComplaint'
 import MapView from '../../manage/map/Map.vue'
 moment.locale('zh-cn')
 
 export default {
   name: 'order',
-  components: {OrderView, OrderAudit, RangeDate, OrderStatus, OrderAdd, MapView, OrderEvaluate},
+  components: {OrderView, OrderAudit, RangeDate, OrderStatus, OrderAdd, MapView, OrderEvaluate, OrderComplaint},
   data () {
     return {
       advanced: false,
@@ -140,6 +148,10 @@ export default {
         data: null
       },
       orderEvaluateView: {
+        visiable: false,
+        data: null
+      },
+      orderComplaintView: {
         visiable: false,
         data: null
       },
@@ -267,9 +279,9 @@ export default {
         customRender: (text, row, index) => {
           switch (text) {
             case '0':
-              return <a-tag>区内配送</a-tag>
+              return <a-tag>自取</a-tag>
             case '1':
-              return <a-tag>区外配送</a-tag>
+              return <a-tag>外送</a-tag>
             default:
               return '- -'
           }
@@ -316,6 +328,10 @@ export default {
     orderEvaluateOpen (row) {
       this.orderEvaluateView.data = row
       this.orderEvaluateView.visiable = true
+    },
+    orderComplaintOpen (row) {
+      this.orderComplaintView.data = row
+      this.orderComplaintView.visiable = true
     },
     orderComplete (row) {
       this.$get(`/cos/order-info/audit`, {
@@ -379,6 +395,14 @@ export default {
     handleorderAddSuccess () {
       this.orderEvaluateView.visiable = false
       this.$message.success('新增评价成功')
+      this.search()
+    },
+    handleorderComplaintViewClose () {
+      this.orderComplaintView.visiable = false
+    },
+    handleorderComplaintViewSuccess () {
+      this.orderComplaintView.visiable = false
+      this.$message.success('投诉成功')
       this.search()
     },
     edit (record) {

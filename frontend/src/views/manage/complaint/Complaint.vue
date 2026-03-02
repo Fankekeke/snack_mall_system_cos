@@ -139,11 +139,11 @@ export default {
         ellipsis: true,
         dataIndex: 'userPhone'
       }, {
-        title: '员工名称',
+        title: '所属商家',
         ellipsis: true,
         dataIndex: 'staffName'
       }, {
-        title: '员工头像',
+        title: '商家图片',
         dataIndex: 'staffImages',
         customRender: (text, record, index) => {
           if (!record.staffImages) return <a-avatar shape="square" icon="user" />
@@ -155,7 +155,7 @@ export default {
           </a-popover>
         }
       }, {
-        title: '员工联系方式',
+        title: '联系方式',
         ellipsis: true,
         dataIndex: 'staffPhone',
         customRender: (text, row, index) => {

@@ -1,11 +1,11 @@
 <template>
-  <a-modal v-model="show" title="订单处理" @cancel="onClose" :width="1200">
+  <a-modal v-model="show" title="订单投诉" @cancel="onClose" :width="1000">
     <template slot="footer">
-      <a-button key="back" @click="checkDealer" type="primary">
-        分配
+      <a-button key="back" @click="onClose">
+        取消
       </a-button>
-      <a-button @click="onClose">
-        关闭
+      <a-button key="submit" type="primary" :loading="loading" @click="handleSubmit">
+        提交
       </a-button>
     </template>
     <div style="font-size: 13px;font-family: SimHei" v-if="orderInfo !== null">
@@ -60,105 +60,29 @@
       </a-row>
       <br/>
     </div>
-    <br/>
-    <div style="font-size: 13px;font-family: SimHei" v-if="userInfo !== null">
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">用户信息</span></a-col>
-        <a-col :span="6"><b>会员编号：</b>
-          {{ userInfo.code }}
-        </a-col>
-        <a-col :span="6"><b>用户姓名：</b>
-          {{ userInfo.name ? userInfo.name : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>邮箱地址：</b>
-          {{ userInfo.mail ? userInfo.mail : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>联系电话：</b>
-          {{ userInfo.phone }}
-        </a-col>
-      </a-row>
-      <br/>
-    </div>
-    <br/>
-    <div style="font-size: 13px;font-family: SimHei" v-if="merchantInfo !== null">
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">商家信息</span></a-col>
-        <a-col :span="6"><b>商家编号：</b>
-          {{ merchantInfo.code }}
-        </a-col>
-        <a-col :span="6"><b>商家名称：</b>
-          {{ merchantInfo.name ? merchantInfo.name : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>地 址：</b>
-          {{ merchantInfo.address ? merchantInfo.address : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>负责人：</b>
-          {{ merchantInfo.principal }}
-        </a-col>
-      </a-row>
-      <br/>
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col :span="6"><b>联系方式：</b>
-          {{ merchantInfo.phone }}
-        </a-col>
-      </a-row>
-      <br/>
-    </div>
-    <br/>
     <div style="font-size: 13px;font-family: SimHei" v-if="orderItemInfo.length !== 0">
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">购买商品</span></a-col>
-        <a-table :columns="columns" :data-source="orderItemInfo"></a-table>
+        <a-table :columns="columns" :data-source="orderItemInfo" :pagination="false"></a-table>
       </a-row>
       <br/>
     </div>
-    <br/>
-    <div style="font-size: 13px;font-family: SimHei" v-if="addressInfo !== null">
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">收货地址</span></a-col>
-        <a-col :span="6"><b>收货编号：</b>
-          {{ addressInfo.code }}
-        </a-col>
-        <a-col :span="6"><b>详细地址：</b>
-          {{ addressInfo.address ? addressInfo.address : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>联系人：</b>
-          {{ addressInfo.contactPerson ? addressInfo.contactPerson : '- -' }}
-        </a-col>
-        <a-col :span="6"><b>联系方式：</b>
-          {{ addressInfo.contactMethod }}
+    <a-form :form="form" layout="vertical" style="padding: 20px">
+      <a-row :gutter="20">
+        <a-col :span="24">
+          <a-form-item label='投诉内容' v-bind="formItemLayout">
+            <a-textarea :rows="6" v-decorator="[
+            'content',
+             { rules: [{ required: true, message: '请输入投诉内容!' }] }
+            ]"/>
+          </a-form-item>
         </a-col>
       </a-row>
-      <br/>
-    </div>
-    <br/>
-    <div style="font-size: 13px;font-family: SimHei" v-if="staffInfo !== null">
-      <a-row style="padding-left: 24px;padding-right: 24px;">
-        <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">配送员信息</span></a-col>
-        <a-col :span="6"><b>员工姓名：</b>
-          {{ staffInfo.name }}
-        </a-col>
-        <a-col :span="6"><b>性别：</b>
-          <span v-if="orderInfo.type === '1'">男</span>
-          <span v-if="orderInfo.type === '2'">女</span>
-        </a-col>
-        <a-col :span="6"><b>员工工号：</b>
-          {{ staffInfo.code }}
-        </a-col>
-      </a-row>
-      <br/>
-    </div>
-    <br/>
-    <div style="font-size: 13px;font-family: SimHei">
-      <a-select v-model="staffId">
-        <a-select-option v-for="(item, index) in staffList" :value="item.id" :key="index">{{ item.name }}</a-select-option>
-      </a-select>
-    </div>
+    </a-form>
   </a-modal>
 </template>
 
 <script>
-import moment from 'moment'
 import {mapState} from 'vuex'
 function getBase64 (file) {
   return new Promise((resolve, reject) => {
@@ -168,16 +92,14 @@ function getBase64 (file) {
     reader.onerror = error => reject(error)
   })
 }
-moment.locale('zh-cn')
 const formItemLayout = {
   labelCol: { span: 24 },
   wrapperCol: { span: 24 }
 }
 export default {
-  name: 'OrderAudit',
+  name: 'evaluateAdd',
   props: {
-    orderShow: {
-      type: Boolean,
+    evaluateAddVisiable: {
       default: false
     },
     orderData: {
@@ -190,7 +112,7 @@ export default {
     }),
     show: {
       get: function () {
-        return this.orderShow
+        return this.evaluateAddVisiable
       },
       set: function () {
       }
@@ -230,41 +152,38 @@ export default {
       }]
     }
   },
-  watch: {
-    orderShow: function (value) {
-      if (value) {
-        this.dataInit(this.orderData.id)
-      }
-    }
-  },
   data () {
     return {
       formItemLayout,
+      form: this.$form.createForm(this),
       loading: false,
       fileList: [],
       previewVisible: false,
       previewImage: '',
-      repairInfo: null,
-      reserveInfo: null,
       durgList: [],
       logisticsList: [],
       current: 0,
+      buyer: null,
+      sale: null,
+      commodityData: null,
       userInfo: null,
       orderInfo: null,
       merchantInfo: null,
       orderItemInfo: [],
       addressInfo: null,
       staffInfo: null,
-      evaluateInfo: null,
-      staffId: null,
-      staffList: []
+      evaluateInfo: null
     }
   },
-  mounted () {
-    this.selectStaffList()
+  watch: {
+    evaluateAddVisiable: function (value) {
+      if (value) {
+        this.fileList = []
+        this.dataInit(this.orderData.id)
+      }
+    }
   },
   methods: {
-    moment,
     dataInit (orderId) {
       this.$get(`/cos/order-info/${orderId}`).then((r) => {
         this.userInfo = r.data.user
@@ -274,21 +193,6 @@ export default {
         this.addressInfo = r.data.address
         this.staffInfo = r.data.staff
         this.evaluateInfo = r.data.evaluate
-        this.imagesInit(this.merchantInfo.images)
-      })
-    },
-    selectStaffList () {
-      this.$get(`/cos/staff-info/selectStaffByMerchant/${this.currentUser.userId}`).then((r) => {
-        this.staffList = r.data.user
-      })
-    },
-    checkDealer () {
-      if (this.staffId === null) {
-        this.$message.warn('请选择配送员工')
-        return false
-      }
-      this.$get(`/cos/order-info/checkDealer`, {orderCode: this.orderInfo.code, staffId: this.staffId}).then((r) => {
-        this.$emit('success')
       })
     },
     handleCancel () {
@@ -304,36 +208,37 @@ export default {
     picHandleChange ({ fileList }) {
       this.fileList = fileList
     },
-    imagesInit (images) {
-      if (images !== null && images !== '') {
-        let imageList = []
-        images.split(',').forEach((image, index) => {
-          imageList.push({uid: index, name: image, status: 'done', url: 'http://127.0.0.1:9527/imagesWeb/' + image})
-        })
-        this.fileList = imageList
-      }
-    },
-    submit () {
-      console.log(this.takeShop)
-      console.log(this.returnShop)
-      if (this.takeShop !== '' && this.returnShop !== '') {
-        this.$put(`/cos/order-info`, {
-          'takeShop': this.takeShop,
-          'returnShop': this.returnShop,
-          'id': this.orderInfo.id
-        }).then((r) => {
-          this.$emit('success')
-        })
-      } else {
-        this.$message.warn('请选择车店')
-      }
+    reset () {
+      this.loading = false
+      this.form.resetFields()
     },
     onClose () {
+      this.reset()
       this.$emit('close')
     },
-    cleanData () {
-      this.staffCheck = []
-      this.driverCheck = []
+    handleSubmit () {
+      // 获取图片List
+      let images = []
+      this.fileList.forEach(image => {
+        images.push(image.response)
+      })
+      this.form.validateFields((err, values) => {
+        values.orderCode = this.orderData.code
+        values.userId = this.orderData.userId
+        values.staffId = this.orderData.merchantId
+        values.images = images.length > 0 ? images.join(',') : null
+        if (!err) {
+          this.loading = true
+          this.$post('/cos/complaint-info', {
+            ...values
+          }).then((r) => {
+            this.reset()
+            this.$emit('success')
+          }).catch(() => {
+            this.loading = false
+          })
+        }
+      })
     }
   }
 }
