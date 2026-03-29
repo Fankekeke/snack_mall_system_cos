@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cc.mrbird.febs.cos.dao.ChatRecordMapper">
 
-    <!-- 根据车主ID获取沟通联系人列表 -->
+    <!-- 根据商家ID获取沟通联系人列表 -->
     <select id="getContactsByStaffId" resultType="java.util.LinkedHashMap">
         SELECT DISTINCT cr.user_id          as         userId,
                         cr.staff_id       AS         staffId,

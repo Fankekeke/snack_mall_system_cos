@@ -35,6 +35,14 @@
           </a-form-item>
         </a-col>
         <a-col :span="12">
+          <a-form-item label='进货价' v-bind="formItemLayout">
+            <a-input-number style="width: 100%" v-decorator="[
+            'putPrice',
+            { rules: [{ required: true, message: '请输入进货价!' }] }
+            ]" :min="0.1" :step="0.1"/>
+          </a-form-item>
+        </a-col>
+        <a-col :span="12">
           <a-form-item label='价格' v-bind="formItemLayout">
             <a-input-number style="width: 100%" v-decorator="[
             'unitPrice',

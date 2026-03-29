@@ -56,6 +56,7 @@
                   <a-card
                     :bordered="false"
                     hoverable
+                    @click="showDetail(item)"
                     style="border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); transition: all 0.3s ease;"
                   >
                     <a-carousel
@@ -95,7 +96,7 @@
                           type="heart"
                           v-if="checkCollect(item.id)"
                           style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; color: red; transition: transform 0.2s ease;"
-                          @click="collectDel(item)"
+                          @click.stop="collectDel(item)"
                           @mouseenter="$event.target.style.transform='scale(1.2)'"
                           @mouseleave="$event.target.style.transform='scale(1)'"
                         />
@@ -103,7 +104,7 @@
                           type="heart"
                           v-else
                           style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; color: #ccc; transition: transform 0.2s ease;"
-                          @click="collectAdd(item)"
+                          @click.stop="collectAdd(item)"
                           @mouseenter="$event.target.style.transform='scale(1.2)'"
                           @mouseleave="$event.target.style.transform='scale(1)'"
                         />
@@ -111,7 +112,7 @@
                           type="plus-square"
                           theme="twoTone"
                           style="font-size: 20px; margin-right: 5px; margin-top: 10px; cursor: pointer; transition: transform 0.2s ease;"
-                          @click="dishesAdd(item)"
+                          @click.stop="dishesAdd(item)"
                           v-show="nextFlag == 1"
                           @mouseenter="$event.target.style.transform='scale(1.2)'"
                           @mouseleave="$event.target.style.transform='scale(1)'"
@@ -295,6 +296,99 @@
           </div>
         </a-col>
       </a-row>
+      <!-- 商品详情弹窗 -->
+      <a-modal
+        v-model="detailVisible"
+        :footer="null"
+        :width="800"
+        :bodyStyle="{ padding: 0 }"
+        @cancel="detailVisible = false"
+      >
+        <div v-if="currentDetail" style="max-height: 70vh; overflow-y: auto;">
+          <!-- 商品图片轮播 -->
+          <a-carousel
+            autoplay            style="height: 300px;"
+            :autoplay-speed="3000"
+          >
+            <div
+              v-for="(img, idx) in currentDetail.images.split(',')"
+              :key="idx"              style="width: 100%; height: 300px; display: flex; align-items: center; justify-content: center; background: #f5f5f5;"
+            >
+              <img
+                :src="'http://127.0.0.1:9527/imagesWeb/' + img"                style="max-width: 100%; max-height: 100%; object-fit: contain;"
+              />
+            </div>
+          </a-carousel>
+
+          <!-- 商品信息 -->
+          <div style="padding: 24px;">
+            <h2 style="font-size: 20px; font-weight: bold; margin-bottom: 16px; font-family: SimHei;">
+              {{ currentDetail.name }}
+            </h2>
+
+            <div style="margin-bottom: 16px;">
+              <span style="color: #f5222d; font-size: 24px; font-weight: bold; font-family: SimHei;">
+                ¥{{ currentDetail.unitPrice }}
+              </span>
+            </div>
+
+            <a-divider style="margin: 16px 0;" />
+
+            <div style="margin-bottom: 16px;">
+              <b style="font-family: SimHei;">商品描述：</b>
+              <p style="margin: 8px 0; color: #666; font-family: SimHei;">
+                {{ currentDetail.content }}
+              </p>
+            </div>
+
+            <a-divider style="margin: 16px 0;" />
+
+            <div style="margin-bottom: 16px;">
+              <b style="font-family: SimHei;">原材料：</b>
+              <p style="margin: 8px 0; color: #666; font-family: SimHei;">
+                {{ currentDetail.rawMaterial }}
+              </p>
+            </div>
+
+            <a-divider style="margin: 16px 0;" />
+
+            <div style="margin-bottom: 16px;">
+              <b style="font-family: SimHei;">份量：</b>
+              <p style="margin: 8px 0; color: #666; font-family: SimHei;">
+                {{ currentDetail.portion }}
+              </p>
+            </div>
+
+            <a-divider style="margin: 16px 0;" />
+
+            <div style="margin-bottom: 16px;">
+              <b style="font-family: SimHei;">热量：</b>
+              <span style="color: #666; font-family: SimHei;">
+                {{ currentDetail.heat }} 卡路里
+              </span>
+            </div>
+
+            <a-divider style="margin: 16px 0;" />
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+              <a-button
+                type="primary"
+                size="large"
+                @click="addToCartAndClose"
+                v-show="nextFlag == 1"                style="flex: 1; font-family: SimHei;"
+              >
+                加入购物车
+              </a-button>
+              <a-button
+                size="large"
+                @click="detailVisible = false"                style="flex: 1; font-family: SimHei;"
+              >
+                继续浏览
+              </a-button>
+            </div>
+          </div>
+        </div>
+      </a-modal>
       <a-drawer
         title="商家评价"
         width="600"
@@ -431,6 +525,8 @@ export default {
   data () {
     return {
       childrenDrawer: false,
+      detailVisible: false,
+      currentDetail: null,
       orderAddInfo: null,
       addressId: null,
       addressList: [],
@@ -522,6 +618,17 @@ export default {
     }
   },
   methods: {
+    showDetail(item) {
+      this.currentDetail = item
+      this.detailVisible = true
+    },
+    addToCartAndClose() {
+      if (this.currentDetail) {
+        this.dishesAdd(this.currentDetail)
+        this.detailVisible = false
+        this.$message.success('已加入购物车')
+      }
+    },
     handleCouponChange(couponInfo) {
       this.selectedCouponInfo = couponInfo
 

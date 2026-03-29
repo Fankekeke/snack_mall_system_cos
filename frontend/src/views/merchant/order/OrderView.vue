@@ -1,5 +1,5 @@
 <template>
-  <a-modal v-model="show" title="订单详情" @cancel="onClose" :width="1500">
+  <a-modal v-model="show" title="订单详情" @cancel="onClose" :width="1200">
     <template slot="footer">
       <a-button key="back" @click="onClose" type="danger">
         关闭
@@ -129,6 +129,41 @@
       <br/>
     </div>
     <br/>
+    <div style="font-size: 13px;font-family: SimHei" v-if="orderData.status !== null && orderData.status == '2'">
+      <a-row style="padding-left: 24px;padding-right: 24px;">
+        <a-col style="margin-bottom: 15px;display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 15px;font-weight: 650;color: #000c17">物流更新</span>
+          <a-button type="primary" size="small" @click="showLogisticsModal">
+            <a-icon type="plus" />
+            更新物流
+          </a-button>
+        </a-col>
+        <a-col :span="24">
+          <a-timeline>
+            <a-timeline-item
+              v-for="(logistics, index) in logisticsList"
+              :key="index"
+              :color="index === 0 ? 'green' : 'blue'"
+            >
+              <template slot="dot">
+                <a-icon v-if="index === 0" type="check-circle" style="font-size: 16px; color: #52c41a;" />
+                <a-icon v-else type="clock-circle" style="font-size: 16px; color: #1890ff;" />
+              </template>
+              <div style="font-size: 13px; font-family: SimHei;">
+                <p style="margin: 0 0 5px 0; font-weight: bold;">{{ logistics.time }}</p>
+                <p style="margin: 0; color: #666;">{{ logistics.content }}</p>
+              </div>
+            </a-timeline-item>
+          </a-timeline>
+          <div v-if="!logisticsList || logisticsList.length === 0" style="text-align: center; padding: 30px; color: #999;">
+            <a-icon type="info-circle" style="font-size: 24px; margin-bottom: 10px;" />
+            <p>暂无物流信息，请点击右上角按钮添加</p>
+          </div>
+        </a-col>
+      </a-row>
+      <br/>
+    </div>
+    <br/>
     <div style="font-size: 13px;font-family: SimHei" v-if="staffInfo !== null">
       <a-row style="padding-left: 24px;padding-right: 24px;">
         <a-col style="margin-bottom: 15px"><span style="font-size: 15px;font-weight: 650;color: #000c17">配送员信息</span></a-col>
@@ -166,6 +201,44 @@
       </a-row>
       <br/>
     </div>
+    <a-modal
+      v-model="logisticsModalVisible"
+      title="更新物流信息"
+      @cancel="handleLogisticsCancel"
+      :width="600"
+    >
+      <a-form-model
+        ref="logisticsForm"
+        :model="logisticsForm"
+        :rules="logisticsRules"
+        layout="vertical"
+      >
+        <a-form-model-item label="物流时间" prop="time">
+          <a-date-picker
+            v-model="logisticsForm.time"
+            show-time
+            format="YYYY-MM-DD HH:mm:ss"
+            placeholder="请选择物流更新时间"          style="width: 100%"
+          />
+        </a-form-model-item>
+        <a-form-model-item label="物流内容" prop="content">
+          <a-textarea
+            v-model="logisticsForm.content"
+            placeholder="请输入物流状态，例如：已发货、运输中、已签收等"
+            :rows="4"
+          />
+        </a-form-model-item>
+      </a-form-model>
+
+      <template slot="footer">
+        <a-button key="back" @click="handleLogisticsCancel">
+          取消
+        </a-button>
+        <a-button key="submit" type="primary" :loading="submitting" @click="submitLogistics">
+          确定
+        </a-button>
+      </template>
+    </a-modal>
     <br/>
   </a-modal>
 </template>
@@ -252,7 +325,21 @@ export default {
       orderItemInfo: [],
       addressInfo: null,
       staffInfo: null,
-      evaluateInfo: null
+      evaluateInfo: null,
+      logisticsModalVisible: false,
+      submitting: false,
+      logisticsForm: {
+        time: null,
+        content: ''
+      },
+      logisticsRules: {
+        time: [
+          { required: true, message: '请选择物流时间', trigger: 'change' }
+        ],
+        content: [
+          { required: true, message: '请输入物流内容', trigger: 'blur' }
+        ]
+      }
     }
   },
   watch: {
@@ -263,6 +350,46 @@ export default {
     }
   },
   methods: {
+    showLogisticsModal () {
+      this.logisticsModalVisible = true
+      this.logisticsForm = {
+        time: this.$moment(),
+        content: ''
+      }
+    },
+    handleLogisticsCancel () {
+      this.logisticsModalVisible = false
+      this.$refs.logisticsForm.resetFields()
+    },
+    submitLogistics () {
+      this.$refs.logisticsForm.validate(valid => {
+        if (!valid) return
+
+        this.submitting = true
+
+        const newLogistics = {
+          time: this.logisticsForm.time.format('YYYY-MM-DD HH:mm:ss'),
+          content: this.logisticsForm.content
+        }
+
+        const updatedLogisticsList = [newLogistics, ...this.logisticsList]
+
+        this.$put('/cos/order-info/updateLogistics', {
+          id: this.orderData.id,
+          logisticsContent: JSON.stringify(updatedLogisticsList)
+        }).then(() => {
+          this.$message.success('物流信息更新成功')
+          this.logisticsList = updatedLogisticsList
+          this.handleLogisticsCancel()
+
+          this.$emit('refresh')
+        }).catch(() => {
+          this.$message.error('物流信息更新失败')
+        }).finally(() => {
+          this.submitting = false
+        })
+      })
+    },
     dataInit (orderId) {
       this.$get(`/cos/order-info/${orderId}`).then((r) => {
         this.userInfo = r.data.user
@@ -273,6 +400,11 @@ export default {
         this.staffInfo = r.data.staff
         this.evaluateInfo = r.data.evaluate
         this.imagesInit(this.merchantInfo.images)
+        if (this.orderData.logisticsContent) {
+          this.logisticsList = JSON.parse(this.orderData.logisticsContent)
+        } else {
+          this.logisticsList = []
+        }
       })
     },
     imagesInit (images) {

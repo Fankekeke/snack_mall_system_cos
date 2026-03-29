@@ -13,6 +13,7 @@
         di.portion,
         di.taste,
         di.unit_price,
+        di.put_price,
         di.sale_num,
         di.status,
         di.merchant_id,
